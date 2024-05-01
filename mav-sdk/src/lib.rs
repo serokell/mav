@@ -93,7 +93,7 @@ pub struct Drone {
 impl Drone {
     /// Connects to a MAVSDK (gRPC) server with a valid URI
     ///
-    pub async fn connect(url: &'static str) -> Result<Self> {
+    pub async fn connect(url: String) -> Result<Self> {
         // TODO: Add timeout
         // TODO: Evaluate adding concurrency limit for a request
         let channel = Endpoint::new(url)?.connect().await?;

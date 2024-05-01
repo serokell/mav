@@ -1,5 +1,8 @@
 # MAV
 
+## Reason for forking
+The library requires `&'static` string for connection, even though the underlying library `tonic` doesn't. This limits how one can specify connection url.
+
 ## The Rust book for Drones
 
 You can run the Rust book for drones by using `mdbook`:

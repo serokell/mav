@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{
+    io::{self, Write},
+    path::PathBuf,
+};
 
 use chrono::{DateTime, Utc};
 use log::{error, info};
@@ -12,15 +15,22 @@ use mav_sdk::{
 // use simple_logger::SimpleLogger;
 use telemetry::{Entry, FileStore, Recorder};
 
-const MAVSDK_SERVER: &str = "http://127.0.0.1:4000";
-
 #[tokio::main]
 async fn main() {
     // init logger
     simple_logger::init_with_level(log::Level::Info).unwrap();
 
-    let drone = Drone::connect(MAVSDK_SERVER).await.expect("Should connect");
-    info!("We have a DRONE connection with {}", MAVSDK_SERVER);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() > 1 {
+        io::stderr()
+            .write_all(b"Usage: flight_telemetry [connection_url]\n")
+            .unwrap();
+        std::process::exit(1);
+    }
+    let url = args.first().unwrap().to_string();
+
+    let drone = Drone::connect(url.clone()).await.expect("Should connect");
+    info!("We have a DRONE connection with {}", url);
 
     // use the same time for all logs files
     let time = Utc::now();

@@ -1,11 +1,20 @@
-use mav_sdk::{grpc::telemetry::AttitudeEulerResponse, Drone};
+use std::io::{self, Write};
 
-const MAVSDK_SERVER: &str = "http://127.0.0.1:4000";
+use mav_sdk::{grpc::telemetry::AttitudeEulerResponse, Drone};
 
 #[tokio::main]
 async fn main() {
-    let mut drone = Drone::connect(MAVSDK_SERVER).await.expect("Should connect");
-    println!("We have a DRONE connection with {}", MAVSDK_SERVER);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() > 1 {
+        io::stderr()
+            .write_all(b"Usage: telemetry_subscription [connection_url]\n")
+            .unwrap();
+        std::process::exit(1);
+    }
+    let url = args.first().unwrap().to_string();
+
+    let mut drone = Drone::connect(url.clone()).await.expect("Should connect");
+    println!("We have a DRONE connection with {}", url);
 
     let subscribe_euler_request = mav_sdk::grpc::telemetry::SubscribeAttitudeEulerRequest {};
     let mut response = drone

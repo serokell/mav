@@ -1,13 +1,24 @@
-use std::{thread::sleep, time::Duration};
+use std::{
+    io::{self, Write},
+    thread::sleep,
+    time::Duration,
+};
 
 use mav_sdk::Drone;
 
-const MAVSDK_SERVER: &str = "http://127.0.0.1:4000";
-
 #[tokio::main]
 async fn main() {
-    let mut drone = Drone::connect(MAVSDK_SERVER).await.expect("Should connect");
-    println!("We have a DRONE connection with {}", MAVSDK_SERVER);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() > 1 {
+        io::stderr()
+            .write_all(b"Usage: arm_disarm [connection_url]\n")
+            .unwrap();
+        std::process::exit(1);
+    }
+    let url = args.first().unwrap().to_string();
+
+    let mut drone = Drone::connect(url.clone()).await.expect("Should connect");
+    println!("We have a DRONE connection with {}", url);
 
     let get_version = mav_sdk::grpc::info::GetVersionRequest {};
     let version_response = drone.info.get_version(get_version).await.unwrap();
@@ -52,7 +63,7 @@ async fn arm_disarm(mut drone: Drone) {
     );
 
     sleep(Duration::from_secs(2));
-    
+
     print!("Disarming drone... ");
 
     let disarm_request = mav_sdk::grpc::action::DisarmRequest {};

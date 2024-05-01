@@ -1,12 +1,21 @@
+use std::io::{self, Write};
+
 use mav_sdk::{grpc::telemetry::TelemetryServiceClient, Drone};
 use tonic::transport::Channel;
 
-const MAVSDK_SERVER: &str = "http://127.0.0.1:4000";
-
 #[tokio::main]
 async fn main() {
-    let drone = Drone::connect(MAVSDK_SERVER).await.expect("Should connect");
-    println!("We have a DRONE connection with {}", MAVSDK_SERVER);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() > 1 {
+        io::stderr()
+            .write_all(b"Usage: flight_telemetry [connection_url]\n")
+            .unwrap();
+        std::process::exit(1);
+    }
+    let url = args.first().unwrap().to_string();
+
+    let drone = Drone::connect(url.clone()).await.expect("Should connect");
+    println!("We have a DRONE connection with {}", url);
 
     tokio::spawn(print_quaternion(drone.telemetry.clone()));
     tokio::spawn(print_position(drone.telemetry.clone()));
